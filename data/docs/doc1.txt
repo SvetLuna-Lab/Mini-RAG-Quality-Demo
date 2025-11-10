@@ -1,3 +1,0 @@
-This is a small local document used for the mini RAG demo.
-It describes how a simple Retrieval-Augmented Generation pipeline can work
-without any external LLM API, using only TF-IDF and local text files.

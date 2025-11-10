@@ -1,0 +1,3 @@
+Mini RAG systems are often used to quickly validate retrieval quality
+before moving to large scale infrastructure. A small corpus allows fast
+iteration on embeddings, similarity metrics, and ranking logic.

@@ -1,0 +1,4 @@
+Liquid-propellant rocket engines require continuous health monitoring.
+Telemetry channels such as chamber pressure, turbopump speed, injector
+temperature, and vibration levels are used to detect early signs of
+faults and prevent mission failure.

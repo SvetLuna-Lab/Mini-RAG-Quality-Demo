@@ -1,143 +1,237 @@
 # Mini-rag-quality-demo
 
-Mini Retrieval-Augmented Generation (RAG) prototype with a simple answer quality evaluation layer.
+Tiny, self-contained demo of a **Retrieval-Augmented Generation (RAG)** style retriever.
 
-This project is an educational demo of how a small RAG-style system can be built **without external APIs**:
+The goal of this repo is not to build a full RAG system, but to show a **minimal,
+well-structured retrieval component**:
 
-- load a small set of local text documents;
-- build a TF-IDF index and retrieve top-K relevant chunks for a question;
-- generate an answer using a simple LLM stub (no external model required);
-- compute **naive quality metrics**:
-  - keyword coverage (does the answer cover the main words from the question?),
-  - source overlap (how much the answer is grounded in the retrieved documents).
+- loads a small text corpus from `docs/`
+- builds a simple embedding-based retriever
+- lets you ask queries and see the **top-k most relevant documents**
+- contains **unit tests** and an **example script** so it’s easy to understand and extend
 
-The focus is on **pipeline structure and evaluation**, not on the power of the language model.
+This is a good building block / portfolio project if you want to show basic
+experience with *RAG quality, retrieval and evaluation*.
 
 ---
 
 ## Project structure
 
-```text
 mini-rag-quality-demo/
-  data/
-    docs/
-      doc1.txt        # example documents (you can replace with your own)
-      doc2.txt
-  src/
-    __init__.py
-    indexer.py        # TF-IDF index over local documents
-    retriever.py      # (optional, can be merged with indexer – kept for extensibility)
-    rag_pipeline.py   # RAG pipeline: retrieve + simple LLM stub
-    eval.py           # simple answer quality metrics
-    cli.py            # command-line entry point
-  README.md
-  requirements.txt
-  .gitignore
-
-You can put any .txt files into data/docs/ – the pipeline will index them.
+├─ data/
+│  └─ .gitkeep                # reserved for future data, currently empty
+├─ docs/                      # tiny text corpus indexed by the retriever
+│  ├─ .gitkeep                # keeps the folder in git even if you remove all txt files
+│  ├─ doc1.txt
+│  ├─ doc2.txt
+│  ├─ doc3.txt
+│  └─ doc4.txt
+├─ examples/
+│  ├─ quick_demo.py           # small non-interactive demo script
+│  └─ .gitkeep                # keeps folder even if you remove all examples
+├─ src/
+│  ├─ __init__.py
+│  └─ retriever.py            # core SimpleEmbeddingRetriever implementation
+├─ tests/
+│  ├─ __init__.py
+│  └─ test_retriever.py       # unit tests for retriever + corpus loader
+├─ main.py                    # CLI entry point (interactive or single-query mode)
+├─ requirements.txt
+├─ .gitignore
+└─ README.md
 
 
 Installation
 
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+Create and activate a virtual environment (optional, but recommended), then
+install dependencies:
+
 pip install -r requirements.txt
 
-
-requirements.txt (minimal):
-
-numpy
-pandas
-scikit-learn
+The project uses only lightweight dependencies (e.g. numpy, scikit-learn,
+pytest, etc.), so it should run almost anywhere.
 
 
 Usage
+1. Prepare the corpus
 
-Put your .txt documents into data/docs/.
+All documents are simple .txt files in the docs/ directory.
 
-Run the RAG pipeline from the command line:
+You can edit / replace the existing ones:
 
-python -m src.cli --question "Explain the main idea of this document."
+doc1.txt, doc2.txt – general short texts
 
+doc3.txt – about mini RAG systems & retrieval quality
 
-Optional arguments:
+doc4.txt – about rocket-engine telemetry & health monitoring
 
---docs – path to the documents directory (default: data/docs).
-
-Example:
-
-python -m src.cli \
-  --docs data/docs \
-  --question "What is this project about and how does the pipeline work?"
+Or you can drop your own .txt files into docs/ – they will all be indexed.
 
 
-The script will:
+2. Interactive demo (CLI)
 
-retrieve the most relevant document chunks,
+Run:
 
-build an answer with a simple LLM stub,
-
-print answer quality metrics:
-
-keyword_coverage
-
-source_overlap,
-
-show which documents were retrieved and their scores.
+python main.py
 
 
-Components
+or, explicitly:
 
-DocumentIndexer (src/indexer.py)
-Builds a TF-IDF index over all .txt files and supports simple similarity search.
-
-RagPipeline (src/rag_pipeline.py)
-Orchestrates retrieval + stubbed LLM answer generation.
-
-SimpleLLMStub
-A placeholder for a real language model. It simply formats the retrieved context; later it can be replaced with a real API (e.g. OpenAI, local LLM, etc.).
-
-eval.py
-Implements two naive metrics:
-
-keyword_coverage_score(question, answer),
-
-source_overlap_score(answer, retrieved_texts).
+python main.py --corpus-dir docs --top-k 3
 
 
-Possible extensions
+You’ll see something like:
 
-Replace the TF-IDF index with BM25 or dense embeddings.
-
-Plug in a real LLM API instead of the stub.
-
-Add richer evaluation:
-
-per-category metrics,
-
-reference answers,
-
-hallucination checks.
+Mini RAG retrieval demo
+Type a query and press Enter.
+Press Ctrl+C or send an empty line to exit.
 
 
-Keywords / Tags
+Example queries:
 
-RAG
+liquid rocket engine
 
-retrieval-augmented-generation
+RAG quality evaluation
 
-LLM
+health monitoring telemetry
 
-evaluation
+retrieval augmented generation
 
-question-answering
+The script prints the top-k documents with their scores and short snippets.
 
-information-retrieval
 
-python
+3. Single query mode
 
-machine-learning
+If you prefer to run one query and exit:
 
-text-mining
+python main.py --query "rocket engine telemetry" --top-k 2
 
-prototype
+
+This will:
+
+load all .txt files from docs/
+
+build the retriever
+
+print only the top-2 results for the given query.
+
+
+4. Example script
+
+There is also a small non-interactive example:
+
+python examples/quick_demo.py
+
+
+It:
+
+loads the corpus from docs/
+
+builds SimpleEmbeddingRetriever
+
+runs a few hard-coded example queries
+
+prints their top-2 results
+
+This is useful as a quick smoke test without typing in the terminal.
+
+
+How it works
+
+The core logic lives in src/retriever.py.
+
+At a high level:
+
+
+1. Corpus loading
+
+docs = load_txt_corpus_from_dir(Path("docs"))
+
+
+Each .txt file is wrapped into a simple Document object with:
+
+doc_id – usually the file name
+
+text – raw content
+
+
+2. Embedding-based retriever
+
+retriever = SimpleEmbeddingRetriever()
+retriever.fit(docs)
+
+
+Internally it:
+
+turns each document into a basic vector representation (toy “embedding”)
+
+stores them in memory as a matrix
+
+can later compute similarity between a query and all documents
+
+
+3. Retrieval
+
+results = retriever.retrieve("rocket engine", top_k=3)
+
+
+Returns a list of (Document, score) pairs, sorted by relevance score
+(higher = more similar).
+
+This is intentionally small and easy to read, so the retrieval logic and structure
+are the focus, not heavy infrastructure.
+
+
+Running tests
+
+Unit tests live in tests/.
+
+To run them:
+
+pytest
+
+
+Tests cover:
+
+loading .txt files with load_txt_corpus_from_dir
+
+simple sanity check that a clearly relevant document is ranked first by
+SimpleEmbeddingRetriever
+
+They are small but help keep the retriever behavior stable as you extend it.
+
+
+Ideas for extensions
+
+If you want to grow this demo into something bigger, here are some directions:
+
+swap the toy embeddings for real sentence embeddings (e.g. sentence-transformers)
+
+add different similarity metrics and compare them
+
+log retrieval quality metrics (precision@k, recall@k) on a small labeled set
+
+plug this retriever into a true RAG chain with an LLM
+
+add a web UI (Streamlit / FastAPI + simple HTML form) for querying
+
+
+Why this project
+
+This repo is designed as a minimal, readable RAG-style retrieval demo that shows:
+
+you can structure a small ML / IR project
+
+you understand basic retrieval and similarity search
+
+you can write simple tests and scripts around your core logic
+
+It’s not meant to be production-grade infrastructure. It’s a good starting point
+for discussions about RAG quality, retrieval evaluation, and scaling up to
+larger corpora and real-world telemetry.
+
+
+Tags
+
+#python #machinelearning #nlp #retrieval #rag
+#ir #embeddings #opensearch #mlops #portfolio

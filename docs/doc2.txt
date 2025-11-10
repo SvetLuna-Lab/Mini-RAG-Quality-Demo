@@ -1,0 +1,3 @@
+This project is focused on the structure and evaluation of a RAG pipeline.
+It includes indexing, retrieval, a simple LLM stub, and naive answer quality metrics.
+The goal is to demonstrate the idea, not to maximize model power.

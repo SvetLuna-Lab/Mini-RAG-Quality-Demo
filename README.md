@@ -13,10 +13,11 @@ well-structured retrieval component**:
 This is a good building block / portfolio project if you want to show basic
 experience with *RAG quality, retrieval and evaluation*.
 
----
+
 
 ## Project structure
 
+```text
 mini-rag-quality-demo/
 ├─ data/
 │  └─ .gitkeep                # reserved for future data, currently empty
